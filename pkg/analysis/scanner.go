@@ -1,6 +1,9 @@
-package main
+package analysis
 
-import "fmt"
+import (
+	"fmt"
+	"os"
+)
 
 // here the scanning of files/data and conversion to Tokens takes place.
 
@@ -10,16 +13,20 @@ type Scanner struct {
 	Line    int
 	Size    int
 	Current int
+	Source  []byte
 }
 
-func (s *Scanner) Scan(src []byte) {
+func (s *Scanner) Scan() []Token {
+	if len(s.Source) == 0 {
+		fmt.Println("Invalid JSON")
+		os.Exit(1)
+	}
+	src := s.Source
 	for _, b := range src {
 		s.scanToken(string(b))
 	}
 
-	for _, tkn := range s.Tokens {
-		fmt.Printf("s: %v, e: %v, type: %v, val: %v\n", tkn.Start, tkn.End, tkn.Type, tkn.Value)
-	}
+	return s.Tokens
 }
 
 func (s *Scanner) AddToken(token Token, start, end int) {
@@ -36,7 +43,6 @@ func (s *Scanner) scanToken(token string) {
 			Type:  LEFT_BRACE,
 			Value: token,
 		}
-
 		s.addToken(currToken)
 		s.Current += len(token)
 	case "}":
@@ -59,4 +65,8 @@ func (s *Scanner) scanToken(token string) {
 
 func (s *Scanner) addToken(token Token) {
 	s.Tokens = append(s.Tokens, token)
+}
+
+func (s *Scanner) isAtEnd() bool {
+	return s.Current >= len(s.Source)
 }

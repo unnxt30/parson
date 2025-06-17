@@ -3,6 +3,8 @@ package main
 import (
 	"log"
 	"os"
+
+	ana "github.com/unnxt30/parson/pkg/analysis"
 )
 
 func main() {
@@ -20,12 +22,20 @@ func main() {
 		os.Exit(1)
 	}
 
-	tokens := []Token{}
-	scanner := &Scanner{
+	tokens := []ana.Token{}
+	scanner := &ana.Scanner{
 		Tokens: tokens,
 		Line:   0,
 		Size:   len(data),
+		Source: data,
 	}
 
-	scanner.Scan(data)
+	tokens = scanner.Scan()
+
+	parser := &ana.Parser{
+		Tokens:  tokens,
+		Current: 0,
+	}
+
+	parser.Parse()
 }
