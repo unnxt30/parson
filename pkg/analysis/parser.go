@@ -19,7 +19,6 @@ func (p *Parser) declaration() {
 		p.content()
 		p.consume(RIGHT_BRACE, "Missing '}'")
 	}
-
 }
 
 func (p *Parser) content() bool {

@@ -29,10 +29,6 @@ func (s *Scanner) Scan() []Token {
 	return s.Tokens
 }
 
-func (s *Scanner) AddToken(token Token, start, end int) {
-	s.Tokens = append(s.Tokens, token)
-}
-
 func (s *Scanner) scanToken(token string) {
 	var currToken Token
 	switch token {
