@@ -1,11 +1,10 @@
 package main
 
-type TokenType int
+type TokenType string
 
 const (
-	LEFT_BRACE TokenType = iota
-	RIGHT_BRACE
-	COLON
+	LEFT_BRACE  TokenType = "{"
+	RIGHT_BRACE TokenType = "}"
 )
 
 type Token struct {
@@ -13,17 +12,4 @@ type Token struct {
 	Value string
 	Start int
 	End   int
-}
-
-func (t Token) String() string {
-	switch t.Type {
-	case LEFT_BRACE:
-		return "{"
-	case RIGHT_BRACE:
-		return "}"
-	case COLON:
-		return ":"
-	default:
-		return t.Value
-	}
 }

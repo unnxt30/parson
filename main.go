@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"os"
 )
@@ -21,6 +20,12 @@ func main() {
 		os.Exit(1)
 	}
 
-	fmt.Println(string(data))
+	tokens := []Token{}
+	scanner := &Scanner{
+		Tokens: tokens,
+		Line:   0,
+		Size:   len(data),
+	}
 
+	scanner.Scan(data)
 }
