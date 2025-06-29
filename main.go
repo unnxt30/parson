@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 
@@ -37,6 +38,9 @@ func main() {
 		Current: 0,
 	}
 
-	parser.Parse()
-
+	err = parser.Parse()
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
 }

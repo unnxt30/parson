@@ -10,15 +10,43 @@ type Parser struct {
 	Current int
 }
 
-func (p *Parser) Parse() {
-	p.declaration()
+func (p *Parser) Parse() error {
+	err := p.value()
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
-func (p *Parser) declaration() {
+func (p *Parser) value() error {
 	if p.match(LEFT_BRACE) {
-		p.content()
-		p.consume(RIGHT_BRACE, "Missing '}'")
+		err := p.value()
+		if err != nil {
+			return err
+		}
+
+		err = p.consume(RIGHT_BRACE, fmt.Sprintf("Missing '}' at line:%v, column: %v", p.Tokens[p.Current].Line, p.Tokens[p.Current].Start))
+		if err != nil {
+			return err
+		}
+	} else if p.match(QUOTE) {
+		p.string()
+		err := p.consume(QUOTE, fmt.Sprintf("Missing closing quote at line: %v, column: %v", p.Tokens[p.Current].Line, p.Tokens[p.Current].Start))
+
+		if err != nil {
+			return err
+		}
+
 	}
+
+	return nil
+}
+
+func (p *Parser) string() bool {
+	p.Current += 1
+	return true
 }
 
 func (p *Parser) content() bool {
@@ -37,21 +65,18 @@ func (p *Parser) match(typ TokenType) bool {
 	return false
 }
 
-func (p *Parser) consume(typ TokenType, msg string) {
+func (p *Parser) consume(typ TokenType, msg string) error {
 	if p.atEnd() {
-		fmt.Printf("%v\n", msg)
-		os.Exit(1)
+		return fmt.Errorf("%v", msg)
 	}
 
 	if p.peek() != typ {
-		fmt.Printf("%v", msg)
-		os.Exit(1)
+		return fmt.Errorf("%v", msg)
 	}
 
-	if !p.atEnd() {
-		p.Current++
-	}
+	p.Current++
 
+	return nil
 }
 
 func (p *Parser) peek() TokenType {

@@ -13,6 +13,7 @@ const (
 	NULL        TokenType = "null"
 	STRING      TokenType = "string"
 	NUMBER      TokenType = "number"
+	EOF         TokenType = "EOF"
 )
 
 type Token struct {
@@ -20,6 +21,7 @@ type Token struct {
 	Value string
 	Start int
 	End   int
+	Line  int
 }
 
 // type String struct {

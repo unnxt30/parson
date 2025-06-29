@@ -26,6 +26,14 @@ func (s *Scanner) Scan() []Token {
 		s.scanToken()
 	}
 
+	s.addToken(Token{
+		Type:  EOF,
+		Value: "",
+		Start: s.Current,
+		End:   s.Current,
+		Line:  s.Line,
+	})
+
 	return s.Tokens
 }
 
@@ -42,6 +50,7 @@ func (s *Scanner) scanToken() {
 			End:   s.Current + len(token),
 			Type:  LEFT_BRACE,
 			Value: token,
+			Line:  s.Line,
 		}
 		s.addToken(currToken)
 		s.Current += len(token)
@@ -51,6 +60,7 @@ func (s *Scanner) scanToken() {
 			End:   s.Current + len(token),
 			Type:  RIGHT_BRACE,
 			Value: token,
+			Line:  s.Line,
 		}
 		s.addToken(currToken)
 		s.Current += len(token)
@@ -64,6 +74,7 @@ func (s *Scanner) scanToken() {
 			Value: "\"",
 			Start: s.Current,
 			End:   s.Current + len(token),
+			Line:  s.Line,
 		}
 
 		s.addToken(currToken)
@@ -71,8 +82,9 @@ func (s *Scanner) scanToken() {
 
 	case "\n":
 		s.Line++
-	case " ":
-		break
+		s.Current++
+	case " ", "\t", "\r":
+		s.Current++
 	default:
 		if s.isString(token) {
 			currToken = s.handleString()
@@ -111,5 +123,6 @@ func (s *Scanner) handleString() Token {
 		Value: val,
 		Start: start,
 		End:   end,
+		Line:  s.Line,
 	}
 }
