@@ -21,15 +21,19 @@ func (s *Scanner) Scan() []Token {
 		fmt.Println("Invalid JSON")
 		os.Exit(1)
 	}
-	src := s.Source
-	for _, b := range src {
-		s.scanToken(string(b))
+
+	for !s.isAtEnd() {
+		s.scanToken()
 	}
 
 	return s.Tokens
 }
 
-func (s *Scanner) scanToken(token string) {
+func (s *Scanner) scanToken() {
+	if s.isAtEnd() {
+		return
+	}
+	var token = string(string(s.Source[s.Current]))
 	var currToken Token
 	switch token {
 	case "{":
@@ -50,11 +54,31 @@ func (s *Scanner) scanToken(token string) {
 		}
 		s.addToken(currToken)
 		s.Current += len(token)
+	case "\"":
+		if s.isAtEnd() {
+			break
+		}
+
+		currToken = Token{
+			Type:  QUOTE,
+			Value: "\"",
+			Start: s.Current,
+			End:   s.Current + len(token),
+		}
+
+		s.addToken(currToken)
+		s.Current += len(token)
+
 	case "\n":
 		s.Line++
 	case " ":
 		break
 	default:
+		if s.isString(token) {
+			currToken = s.handleString()
+			s.addToken(currToken)
+			s.Current += len(currToken.Value)
+		}
 	}
 
 }
@@ -65,4 +89,27 @@ func (s *Scanner) addToken(token Token) {
 
 func (s *Scanner) isAtEnd() bool {
 	return s.Current >= len(s.Source)
+}
+
+func (s *Scanner) isString(tok string) bool {
+	return (tok >= "a" && tok <= "z") ||
+		(tok >= "A" && tok <= "Z")
+
+}
+
+func (s *Scanner) handleString() Token {
+	var val string
+	start := s.Current
+	for s.isString(string(s.Source[s.Current])) {
+		val += string(s.Source[s.Current])
+		s.Current++
+	}
+	end := s.Current
+
+	return Token{
+		Type:  STRING,
+		Value: val,
+		Start: start,
+		End:   end,
+	}
 }

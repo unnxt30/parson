@@ -5,6 +5,14 @@ type TokenType string
 const (
 	LEFT_BRACE  TokenType = "{"
 	RIGHT_BRACE TokenType = "}"
+	LEFT_ANGLE  TokenType = "["
+	RIGHT_ANGLE TokenType = "]"
+	QUOTE       TokenType = "\""
+	COLON       TokenType = ":"
+	COMMA       TokenType = ","
+	NULL        TokenType = "null"
+	STRING      TokenType = "string"
+	NUMBER      TokenType = "number"
 )
 
 type Token struct {
@@ -13,3 +21,7 @@ type Token struct {
 	Start int
 	End   int
 }
+
+// type String struct {
+// 	Value string
+// }
