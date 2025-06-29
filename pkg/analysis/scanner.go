@@ -3,6 +3,7 @@ package analysis
 import (
 	"fmt"
 	"os"
+	"unicode"
 )
 
 // here the scanning of files/data and conversion to Tokens takes place.
@@ -41,7 +42,7 @@ func (s *Scanner) scanToken() {
 	if s.isAtEnd() {
 		return
 	}
-	var token = string(string(s.Source[s.Current]))
+	var token = string(s.Source[s.Current])
 	var currToken Token
 	switch token {
 	case "{":
@@ -80,17 +81,17 @@ func (s *Scanner) scanToken() {
 		s.addToken(currToken)
 		s.Current += len(token)
 
+		s.handleString()
+
 	case "\n":
 		s.Line++
 		s.Current++
 	case " ", "\t", "\r":
 		s.Current++
 	default:
-		if s.isString(token) {
-			currToken = s.handleString()
-			s.addToken(currToken)
-			s.Current += len(currToken.Value)
+		if unicode.IsDigit(rune(token[0])) {
 		}
+
 	}
 
 }
@@ -103,26 +104,35 @@ func (s *Scanner) isAtEnd() bool {
 	return s.Current >= len(s.Source)
 }
 
-func (s *Scanner) isString(tok string) bool {
-	return (tok >= "a" && tok <= "z") ||
-		(tok >= "A" && tok <= "Z")
-
-}
-
-func (s *Scanner) handleString() Token {
+func (s *Scanner) handleString() {
 	var val string
 	start := s.Current
-	for s.isString(string(s.Source[s.Current])) {
+	for !s.isAtEnd() && string(s.Source[s.Current]) != "\"" {
 		val += string(s.Source[s.Current])
 		s.Current++
 	}
-	end := s.Current
 
-	return Token{
-		Type:  STRING,
-		Value: val,
-		Start: start,
-		End:   end,
-		Line:  s.Line,
+	end := s.Current - 1
+
+	if !s.isAtEnd() && string(s.Source[s.Current]) == "\"" {
+		s.addToken(Token{
+			Type:  QUOTE,
+			Value: "\"",
+			Start: s.Current - 1,
+			End:   s.Current,
+			Line:  s.Line,
+		})
+		s.Current += 1
 	}
+
+	if len(val) > 0 {
+		s.addToken(Token{
+			Type:  STRING,
+			Value: val,
+			Start: start,
+			End:   end,
+			Line:  s.Line,
+		})
+	}
+
 }

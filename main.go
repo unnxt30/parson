@@ -1,11 +1,11 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"os"
 
 	ana "github.com/unnxt30/parson/pkg/analysis"
+	"github.com/unnxt30/parson/tools"
 )
 
 func main() {
@@ -33,14 +33,18 @@ func main() {
 
 	tokens = scanner.Scan()
 
-	parser := &ana.Parser{
-		Tokens:  tokens,
-		Current: 0,
-	}
+	// parser := &ana.Parser{
+	// 	Tokens:  tokens,
+	// 	Current: 0,
+	// }
 
-	err = parser.Parse()
-	if err != nil {
-		fmt.Println(err.Error())
-		return
-	}
+	pp := tools.NewPrettyPrinter(tokens)
+
+	pp.Print()
+
+	// err = parser.Parse()
+	// if err != nil {
+	// 	fmt.Println(err.Error())
+	// 	return
+	// }
 }
