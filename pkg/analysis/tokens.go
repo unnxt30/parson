@@ -23,7 +23,3 @@ type Token struct {
 	End   int
 	Line  int
 }
-
-// type String struct {
-// 	Value string
-// }

@@ -16,14 +16,15 @@ func TestParsing(t *testing.T) {
 		Source:  []byte(src),
 	}
 
-	tokens := scanner.Scan()
+	tokens, err := scanner.Scan()
+	assert.Error(t, err)
 
 	parser := Parser{
 		Current: 0,
 		Tokens:  tokens,
 	}
 
-	err := parser.Parse()
+	err = parser.Parse()
 
 	assert.Nil(t, err)
 

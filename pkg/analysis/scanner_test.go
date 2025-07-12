@@ -15,7 +15,7 @@ func TestTokens(t *testing.T) {
 		{
 			name:           "empty object with empty string",
 			source:         `{""}`,
-			expectedTokens: 5,
+			expectedTokens: 6,
 		},
 		{
 			name:           "simple string",
@@ -32,6 +32,11 @@ func TestTokens(t *testing.T) {
 			source:         `{}`,
 			expectedTokens: 3,
 		},
+		{
+			name:           "Number",
+			source:         `-106`,
+			expectedTokens: 2,
+		},
 	}
 
 	for _, tc := range testCases {
@@ -42,7 +47,8 @@ func TestTokens(t *testing.T) {
 				Current: 0,
 				Source:  []byte(tc.source),
 			}
-			tokens := scanner.Scan()
+			tokens, err := scanner.Scan()
+			assert.NoError(t, err)
 			assert.Equal(t, tc.expectedTokens, len(tokens))
 		})
 	}

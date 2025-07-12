@@ -31,7 +31,12 @@ func main() {
 		Source: data,
 	}
 
-	tokens = scanner.Scan()
+	tokens, err = scanner.Scan()
+
+	if err != nil {
+		log.Fatal("Error while scanning file: ", err)
+		os.Exit(1)
+	}
 
 	// parser := &ana.Parser{
 	// 	Tokens:  tokens,
