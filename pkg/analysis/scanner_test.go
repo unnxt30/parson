@@ -42,6 +42,16 @@ func TestTokens(t *testing.T) {
 			source:         `-1e2`,
 			expectedTokens: 2,
 		},
+		{
+			name:           "number with mathematical constant followed by -",
+			source:         `-1e-2`,
+			expectedTokens: 2,
+		},
+		{
+			name:           "Positive number",
+			source:         `16e5`,
+			expectedTokens: 2,
+		},
 	}
 
 	for _, tc := range testCases {
@@ -54,6 +64,7 @@ func TestTokens(t *testing.T) {
 			}
 			tokens, err := scanner.Scan()
 			assert.NoError(t, err)
+			t.Log(tokens)
 			assert.Equal(t, tc.expectedTokens, len(tokens))
 		})
 	}

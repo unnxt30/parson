@@ -142,7 +142,21 @@ func (s *Scanner) scanToken() error {
 		s.Current++
 	default:
 		if unicode.IsDigit(rune(token[0])) {
-			s.handleNumber(false, 0, 0)
+			if s.isAtEnd() {
+				return fmt.Errorf("unexpected end of input at line: %v, col: %v", s.Line, s.Current)
+			}
+			num, err := s.handleNumber(false, 0, 0)
+			if err != nil {
+				return fmt.Errorf("error handling number at line: %v, col : %v. Error: %v", s.Line, s.Current, err)
+			}
+			tok := Token{
+				Type:  NUMBER,
+				Value: num,
+				Start: s.Current - len(num),
+				End:   s.Current,
+				Line:  s.Line,
+			}
+			s.addToken(tok)
 		}
 
 	}
@@ -204,7 +218,6 @@ func (s *Scanner) handleNumber(isNegative bool, decimalCount int, eCount int) (s
 	var num string
 	for !s.isAtEnd() && (unicode.IsDigit(rune(s.Source[s.Current])) || s.Source[s.Current] == 'e') {
 		curr := s.Source[s.Current]
-		fmt.Println("Current character:", string(curr))
 		if curr == 'e' {
 			if s.isAtEnd() {
 				return "", fmt.Errorf("number ending with 'e'")
@@ -214,6 +227,10 @@ func (s *Scanner) handleNumber(isNegative bool, decimalCount int, eCount int) (s
 			} else {
 				num += string(curr)
 				s.Current++
+				if !s.isAtEnd() && (s.Source[s.Current] == '-' || s.Source[s.Current] == '+') {
+					num += string(s.Source[s.Current])
+					s.Current++
+				}
 				val, err := s.handleNumber(false, 0, 1)
 				if err != nil {
 					return "", fmt.Errorf("cannot have more than one mathematical constant 'e' in the same number")

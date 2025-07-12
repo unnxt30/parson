@@ -14,6 +14,7 @@ const (
 	STRING      TokenType = "string"
 	NUMBER      TokenType = "number"
 	EOF         TokenType = "EOF"
+	MINUS       TokenType = "-"
 )
 
 type Token struct {
