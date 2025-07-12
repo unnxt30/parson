@@ -37,6 +37,11 @@ func TestTokens(t *testing.T) {
 			source:         `-106`,
 			expectedTokens: 2,
 		},
+		{
+			name:           "Number with mathematical constant",
+			source:         `-1e2`,
+			expectedTokens: 2,
+		},
 	}
 
 	for _, tc := range testCases {

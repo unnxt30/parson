@@ -6,8 +6,7 @@ import (
 	"unicode"
 )
 
-// here the scanning of files/data and conversion to Tokens takes place.
-
+// Here the scanning of files/data and conversion to Tokens takes place.
 // a list of tokens converted from the source file/data.
 type Scanner struct {
 	Tokens  []Token
@@ -124,7 +123,18 @@ func (s *Scanner) scanToken() error {
 			return fmt.Errorf("unexpected end of input at line: %v, col: %v", s.Line, s.Current)
 		}
 		s.Current++
-		s.handleNumber(true)
+		num, err := s.handleNumber(true, 0, 0)
+		if err != nil {
+			return fmt.Errorf("error handling number at line: %v, col : %v. Error: %v", s.Line, s.Current, err)
+		}
+		tok := Token{
+			Type:  NUMBER,
+			Value: num,
+			Start: s.Current - len(num),
+			End:   s.Current,
+			Line:  s.Line,
+		}
+		s.addToken(tok)
 	case "\n":
 		s.Line++
 		s.Current++
@@ -132,7 +142,7 @@ func (s *Scanner) scanToken() error {
 		s.Current++
 	default:
 		if unicode.IsDigit(rune(token[0])) {
-			s.handleNumber(false)
+			s.handleNumber(false, 0, 0)
 		}
 
 	}
@@ -188,12 +198,31 @@ func (s *Scanner) handleString() error {
 	return nil
 }
 
-// handle cases like -12, 1.6e5, -3.14 etc.
+// Handle cases like -12, 1.6e5, -3.14 etc.
 // Decimals can be handled recursively
-func (s *Scanner) handleNumber(isNegative bool) {
+func (s *Scanner) handleNumber(isNegative bool, decimalCount int, eCount int) (string, error) {
 	var num string
-	for !s.isAtEnd() && unicode.IsDigit(rune(s.Source[s.Current])) {
-		num += string(s.Source[s.Current])
+	for !s.isAtEnd() && (unicode.IsDigit(rune(s.Source[s.Current])) || s.Source[s.Current] == 'e') {
+		curr := s.Source[s.Current]
+		fmt.Println("Current character:", string(curr))
+		if curr == 'e' {
+			if s.isAtEnd() {
+				return "", fmt.Errorf("number ending with 'e'")
+			}
+			if eCount > 0 {
+				return "", fmt.Errorf("cannot have more than one mathematical constant 'e' in the same number")
+			} else {
+				num += string(curr)
+				s.Current++
+				val, err := s.handleNumber(false, 0, 1)
+				if err != nil {
+					return "", fmt.Errorf("cannot have more than one mathematical constant 'e' in the same number")
+				}
+				num += val
+				break
+			}
+		}
+		num += string(curr)
 		s.Current++
 	}
 
@@ -201,15 +230,7 @@ func (s *Scanner) handleNumber(isNegative bool) {
 		num = "-" + num
 	}
 
-	tok := Token{
-		Type:  NUMBER,
-		Value: num,
-		Start: s.Current - len(num),
-		End:   s.Current,
-		Line:  s.Line,
-	}
-
-	s.addToken(tok)
+	return num, nil
 }
 
 func (s *Scanner) handleArray() {
@@ -218,5 +239,4 @@ func (s *Scanner) handleArray() {
 
 // Keys can only be strings, but values can be strings, number, object, array, true, false, or null.
 func (s *Scanner) handleValue() {
-
 }
