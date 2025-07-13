@@ -114,10 +114,32 @@ func (s *Scanner) scanToken() error {
 		if s.isAtEnd() {
 			return fmt.Errorf("unexpected end of input at line: %v, col: %v", s.Line, s.Current)
 		}
+
+		currToken := Token{
+			Type:  TRUE,
+			Value: token,
+			Start: s.Current - len(token),
+			End:   s.Current,
+			Line:  s.Line,
+		}
+
+		s.addToken(currToken)
+		s.Current += len(token)
 	case "false":
 		if s.isAtEnd() {
 			return fmt.Errorf("unexpected end of input at line: %v, col: %v", s.Line, s.Current)
 		}
+
+		currToken := Token{
+			Type:  FALSE,
+			Value: token,
+			Start: s.Current - len(token),
+			End:   s.Current,
+			Line:  s.Line,
+		}
+
+		s.addToken(currToken)
+		s.Current += len(token)
 	case "-":
 		if s.isAtEnd() {
 			return fmt.Errorf("unexpected end of input at line: %v, col: %v", s.Line, s.Current)
@@ -125,7 +147,8 @@ func (s *Scanner) scanToken() error {
 		s.Current++
 		num, err := s.handleNumber(true, 0, 0)
 		if err != nil {
-			return fmt.Errorf("error handling number at line: %v, col : %v. Error: %v", s.Line, s.Current, err)
+			fmt.Println(fmt.Errorf("error handling number at line: %v, col : %v. Error: %v", s.Line, s.Current, err))
+			os.Exit(1)
 		}
 		tok := Token{
 			Type:  NUMBER,
@@ -147,7 +170,8 @@ func (s *Scanner) scanToken() error {
 			}
 			num, err := s.handleNumber(false, 0, 0)
 			if err != nil {
-				return fmt.Errorf("error handling number at line: %v, col : %v. Error: %v", s.Line, s.Current, err)
+				fmt.Println(fmt.Errorf("error handling number at line: %v, col : %v. Error: %v", s.Line, s.Current, err))
+				os.Exit(1)
 			}
 			tok := Token{
 				Type:  NUMBER,
@@ -216,8 +240,9 @@ func (s *Scanner) handleString() error {
 // Decimals can be handled recursively
 func (s *Scanner) handleNumber(isNegative bool, decimalCount int, eCount int) (string, error) {
 	var num string
-	for !s.isAtEnd() && (unicode.IsDigit(rune(s.Source[s.Current])) || s.Source[s.Current] == 'e') {
+	for !s.isAtEnd() && (unicode.IsDigit(rune(s.Source[s.Current])) || s.Source[s.Current] == 'e' || s.Source[s.Current] == '.') {
 		curr := s.Source[s.Current]
+
 		if curr == 'e' {
 			if s.isAtEnd() {
 				return "", fmt.Errorf("number ending with 'e'")
@@ -238,6 +263,22 @@ func (s *Scanner) handleNumber(isNegative bool, decimalCount int, eCount int) (s
 				num += val
 				break
 			}
+		} else if curr == '.' {
+			if s.isAtEnd() {
+				return "", fmt.Errorf("number ending with decimal point")
+			}
+			if decimalCount > 0 {
+				return "", fmt.Errorf("cannot have more than one decimal point in the same number")
+			} else {
+				num += string(curr)
+				s.Current++
+				val, err := s.handleNumber(false, 1, eCount)
+				if err != nil {
+					return "", fmt.Errorf("error resolving decimal point: %v", err)
+				}
+				num += val
+				break
+			}
 		}
 		num += string(curr)
 		s.Current++
@@ -250,8 +291,8 @@ func (s *Scanner) handleNumber(isNegative bool, decimalCount int, eCount int) (s
 	return num, nil
 }
 
+// valid values include: [], [(values,)* value]
 func (s *Scanner) handleArray() {
-
 }
 
 // Keys can only be strings, but values can be strings, number, object, array, true, false, or null.

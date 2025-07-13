@@ -11,46 +11,66 @@ func TestTokens(t *testing.T) {
 		name           string
 		source         string
 		expectedTokens int
+		expectError    bool
 	}{
 		{
 			name:           "empty object with empty string",
 			source:         `{""}`,
 			expectedTokens: 6,
+			expectError:    false,
 		},
 		{
 			name:           "simple string",
 			source:         `"foo"`,
 			expectedTokens: 4,
+			expectError:    false,
 		},
 		{
 			name:           "alpha-numeric string",
 			source:         `"1foo"`,
 			expectedTokens: 4,
+			expectError:    false,
 		},
 		{
 			name:           "empty object",
 			source:         `{}`,
 			expectedTokens: 3,
+			expectError:    false,
 		},
 		{
 			name:           "Number",
 			source:         `-106`,
 			expectedTokens: 2,
+			expectError:    false,
 		},
 		{
 			name:           "Number with mathematical constant",
 			source:         `-1e2`,
 			expectedTokens: 2,
+			expectError:    false,
 		},
 		{
 			name:           "number with mathematical constant followed by -",
 			source:         `-1e-2`,
 			expectedTokens: 2,
+			expectError:    false,
 		},
 		{
 			name:           "Positive number",
 			source:         `16e5`,
 			expectedTokens: 2,
+			expectError:    false,
+		},
+		{
+			name:           "valid Decimal Number",
+			source:         `1.55`,
+			expectedTokens: 2,
+			expectError:    false,
+		},
+		{
+			name:        "invalid decimal Number",
+			source:      `1.4.4`,
+			expectError: true,
 		},
 	}
 
@@ -63,8 +83,11 @@ func TestTokens(t *testing.T) {
 				Source:  []byte(tc.source),
 			}
 			tokens, err := scanner.Scan()
-			assert.NoError(t, err)
-			t.Log(tokens)
+			if tc.expectError {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+			}
 			assert.Equal(t, tc.expectedTokens, len(tokens))
 		})
 	}
