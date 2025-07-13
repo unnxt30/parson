@@ -197,21 +197,67 @@ func (s *Scanner) isAtEnd() bool {
 	return s.Current >= len(s.Source)
 }
 
+func (s *Scanner) previous(val string) bool {
+	if s.Current == 0 {
+		return false
+	}
+
+	return string(s.Source[s.Current-1]) == val
+
+}
+
 func (s *Scanner) handleString() error {
 	var val string
 	start := s.Current
 	var endQt *Token
 	for !s.isAtEnd() {
 		if s.Source[s.Current] == '"' {
-			endQt = &Token{
-				Type:  QUOTE,
-				Value: "\"",
-				Start: s.Current,
-				End:   s.Current,
-				Line:  s.Line,
+			if !s.previous("\\") {
+				endQt = &Token{
+					Type:  QUOTE,
+					Value: "\"",
+					Start: s.Current,
+					End:   s.Current,
+					Line:  s.Line,
+				}
+				s.Current++
+				break
 			}
+		}
+		if s.Source[s.Current] == '\\' {
+			val += string(s.Source[s.Current])
 			s.Current++
-			break
+			curr := s.Source[s.Current]
+			switch curr {
+			case 'r':
+				val += string(curr)
+				s.Current++
+			case 'b':
+				val += string(curr)
+				s.Current++
+			case 'f':
+				val += string(curr)
+				s.Current++
+			case 'n':
+				val += string(curr)
+				s.Current++
+			case 't':
+				val += string(curr)
+				s.Current++
+			case '"':
+				val += string(curr)
+				s.Current++
+			case 'u':
+				curr, err := s.handleUnicode()
+				if err != nil {
+					return fmt.Errorf("%v", err)
+				}
+				val += curr
+				s.Current++
+			default:
+				return fmt.Errorf("dirty escape sequence")
+			}
+			continue
 		}
 		val += string(s.Source[s.Current])
 		s.Current++
@@ -289,6 +335,35 @@ func (s *Scanner) handleNumber(isNegative bool, decimalCount int, eCount int) (s
 	}
 
 	return num, nil
+}
+
+func (s *Scanner) handleUnicode() (string, error) {
+	var val string
+	if s.isAtEnd() {
+		return "", fmt.Errorf("invalid unicode sequence at line:%v, col:%v", s.Line, s.Current)
+	}
+
+	val += string(s.Source[s.Current])
+	s.Current++
+
+	for i := 0; i < 3; i++ {
+		if s.isAtEnd() {
+			return "", fmt.Errorf("dirty unicode sequence")
+		}
+		curr := s.Source[s.Current]
+		s.Current++
+		if isHex(rune(curr)) {
+			val += string(curr)
+		}
+	}
+
+	return val, nil
+}
+
+func isHex(r rune) bool {
+	return ('0' <= r && r <= '9') ||
+		('a' <= r && r <= 'f') ||
+		('A' <= r && r <= 'F')
 }
 
 // valid values include: [], [(values,)* value]

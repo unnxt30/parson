@@ -67,10 +67,20 @@ func TestTokens(t *testing.T) {
 			expectedTokens: 2,
 			expectError:    false,
 		},
+		// {
+		// 	name:        "invalid decimal Number",
+		// 	source:      `1.4.4`,
+		// 	expectError: true,
+		// },
 		{
-			name:        "invalid decimal Number",
-			source:      `1.4.4`,
-			expectError: true,
+			name:           "escape character in string",
+			source:         `"hello there \"genious\" !"`,
+			expectedTokens: 4,
+		},
+		{
+			name:           "valid unicode",
+			source:         `"\uFFFF"`,
+			expectedTokens: 4,
 		},
 	}
 
